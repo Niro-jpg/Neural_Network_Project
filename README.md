@@ -1,2 +1,2 @@
 # Neural_Network_Project
-our neural network project
+Our neural network project
