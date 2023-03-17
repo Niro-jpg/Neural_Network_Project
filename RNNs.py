@@ -1,0 +1,128 @@
+import torch
+from torch import nn
+import torch.nn.functional as F
+from torch.nn.parameter import Parameter
+
+class SRNN(nn.Module):
+    def __init__(self, input_size, output_size, hidden_size = 256, MLP_len = 3, MLP_size = 32):
+        super(SRNN, self).__init__()
+
+        # Defining some parameters
+        self.MLP_len = MLP_len
+
+        self.hidden_size = hidden_size
+
+        self.h2o = nn.Linear(hidden_size, output_size, dtype = torch.float)
+
+        self.layerMLP = nn.Sequential(
+          nn.Linear(input_size, 100),
+          nn.ReLU(),
+          nn.Linear(100, 100),
+          nn.ReLU(),
+          nn.Linear(100, 100),
+          nn.ReLU(),
+          nn.Linear(100, 50),
+          nn.ReLU(),
+          nn.Linear(50, hidden_size),
+          nn.Sigmoid()
+        )
+
+
+        self.linearH = nn.Linear(hidden_size, hidden_size, bias = False, dtype = torch.float)
+        
+        self.linearX = nn.Linear(input_size, hidden_size, dtype = torch.float)
+        
+    
+    def forward(self, input, hidden = None):
+        
+        if hidden == None: hidden = self.init_hidden()
+
+        for x in input:
+
+          pre_hidden = torch.roll(hidden, 1, -1)
+
+          linear_x = self.linearX(x)
+
+          fx = self.layerMLP(x)
+
+          b = torch.mul(fx,torch.sigmoid(linear_x))
+
+          hidden = F.relu(pre_hidden + b)
+
+          output = self.h2o(hidden)
+
+        return output, hidden
+    
+    def init_hidden(self):
+
+        hidden = torch.zeros(self.hidden_size)
+        return hidden
+
+
+
+class RNN(nn.Module):
+    def __init__(self, input_size, output_size, hidden_size):
+        super(RNN, self).__init__()
+
+        # Defining some parameters
+        self.hidden_size = hidden_size
+        self.i2h = nn.Linear(input_size + hidden_size, hidden_size)
+        self.h2o = nn.Linear(hidden_size, output_size)
+    
+    def forward(self, input, hidden = None):
+
+        if hidden == None: hidden = self.init_hidden()
+
+        for element in input:
+
+          combined = torch.cat((element, hidden), 0)
+
+          hidden = self.i2h(combined)
+          output = self.h2o(hidden)
+
+        return output, hidden
+    
+    def init_hidden(self):
+
+        hidden = torch.zeros(self.hidden_size)
+        return hidden
+    
+    
+class GRU(nn.Module):
+    def __init__(self, input_size, output_size, hidden_size):
+        super(GRU, self).__init__()
+
+        # Defining some parameters
+        self.hidden_size = hidden_size
+        self.c2r = nn.Linear(input_size + hidden_size, hidden_size)
+        self.c2z = nn.Linear(input_size + hidden_size, hidden_size)
+        self.c2t = nn.Linear(input_size + hidden_size, hidden_size)
+        self.h2o = nn.Linear(hidden_size, output_size)
+    
+    def forward(self, input, hidden = None):
+        
+        if hidden == None: hidden = self.init_hidden()
+
+        for element in input:
+
+            combined = torch.cat((element, hidden), 0)
+
+            r = torch.sigmoid(self.c2r(combined))
+
+            z = torch.sigmoid(self.c2z(combined))
+
+            combined_tilde = torch.cat((element, torch.mul(r,hidden)),0)
+
+            hidden_tilde = torch.tanh(self.c2t(combined_tilde))
+
+            hidden = torch.mul(z, hidden) + torch.mul(1 - z, hidden_tilde)
+
+            output = self.h2o(hidden)
+
+        return output, hidden
+    
+    def init_hidden(self):
+
+        hidden = torch.zeros(self.hidden_size)
+        return hidden    
+    
