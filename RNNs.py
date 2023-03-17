@@ -126,3 +126,51 @@ class GRU(nn.Module):
         hidden = torch.zeros(self.hidden_size)
         return hidden    
     
+
+class LSTM(nn.Module):
+    def __init__(self, input_size, output_size, hidden_size):
+        super(LSTM, self).__init__()
+
+        # Defining some parameters
+        self.hidden_size = hidden_size
+        self.c2i = nn.Linear(input_size + hidden_size, hidden_size)
+        self.c2f = nn.Linear(input_size + hidden_size, hidden_size)
+        self.c2ot = nn.Linear(input_size + hidden_size, hidden_size)
+        self.c2ct = nn.Linear(input_size + hidden_size, hidden_size)
+        self.h2o = nn.Linear(hidden_size, output_size)
+    
+    def forward(self, input, hidden = None, covariate = None):
+        
+        if hidden == None: hidden = self.init_hidden()
+
+        if covariate == None: covariate = self.init_covariate()
+
+        for element in input:
+
+            combined = torch.cat((element, hidden), 0)
+
+            i = torch.sigmoid(self.c2i(combined))
+
+            f = torch.sigmoid(self.c2f(combined))
+
+            o = torch.sigmoid(self.c2ot(combined))
+
+            c_tilde = torch.tanh(self.c2ct(combined))
+
+            covariate = torch.mul(f,covariate) + torch.mul(i,c_tilde)
+
+            hidden = torch.mul(o,torch.tanh(covariate))
+
+            output = self.h2o(hidden)
+
+        return output, hidden
+    
+    def init_hidden(self):
+
+        hidden = torch.zeros(self.hidden_size)
+        return hidden    
+    
+    def init_covariate(self):
+
+        covariate = torch.zeros(self.hidden_size)
+        return covariate
