@@ -137,7 +137,7 @@ class LSTM(nn.Module):
         self.c2f = nn.Linear(input_size + hidden_size, hidden_size)
         self.c2ot = nn.Linear(input_size + hidden_size, hidden_size)
         self.c2ct = nn.Linear(input_size + hidden_size, hidden_size)
-        self.h2o = nn.Linear(hidden_size, output_size)
+        self.c22o = nn.Linear(hidden_size*2, output_size)
     
     def forward(self, input, hidden = None, covariate = None):
         
@@ -161,7 +161,7 @@ class LSTM(nn.Module):
 
             hidden = torch.mul(o,torch.tanh(covariate))
 
-            output = self.h2o(hidden)
+            output = self.c22o(torch.cat((hidden, covariate), 0))
 
         return output, hidden
     

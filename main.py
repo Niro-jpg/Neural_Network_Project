@@ -2,44 +2,46 @@ from RNNs import *
 from Utils import *
 import matplotlib.pyplot as plt
 import sys
+from tqdm import tqdm
 
 def main():
-  print("hello elmo")
-  print(len(sys.argv))
-  print(sys.argv[1])
-  model = RNN(4,4,256)
-  arg = sys.argv[1]
 
-  if arg == "srnn" or arg == "-s" or arg == "SRNN":
-     arg = SRNN(4,4,256)
-     print("srnn")
+   model = RNN(4,4,256)
+   arg = sys.argv[1]
 
-  if arg == "gru" or arg == "-g" or arg == "GRU":
-     arg = GRU(4,4,256)   
-     print("gru")
+   if "-m" in sys.argv:
+      index = sys.argv.index("-m")
+      arg = sys.argv[index + 1]
 
-  if arg == "lstm" or arg == "-l" or arg == "LSTM":
-     arg = LSTM(4,4,256)   
-     print("gru")   
+      if arg == "srnn" or arg == "s" or arg == "SRNN":
+         model = SRNN(4,4,256)
+         print("srnn")
 
-  path = "../Archive/DailyDelhiClimateTrain.csv"
-    
-  if (len(sys.argv) == 3): path = sys.argv[2]
+      if arg == "gru" or arg == "g" or arg == "GRU":
+         model = GRU(4,4,256)   
+         print("gru")
 
-  dataset, miao = InitDataset(path)
-  losses = []
+      if arg == "lstm" or arg == "l" or arg == "LSTM":
+         model = LSTM(4,4,256)   
+         print("lstm")   
 
-  criterion = nn.MSELoss()
-  learning_rate = 0.00001
-  optimizer = torch.optim.SGD(model.parameters(), lr = learning_rate)
+   path = "../Archive/DailyDelhiClimateTrain.csv"  
+   if "-p" in sys.argv:
+      index = sys.argv.index("-p")
+      path = sys.argv[index + 1]
 
-  hidden = model.init_hidden()
+   dataset, miao = InitDataset(path)
+   losses = []
 
-  loss = 0
+   criterion = nn.MSELoss()
+   learning_rate = 0.00001
+   optimizer = torch.optim.SGD(model.parameters(), lr = learning_rate)
 
-  for i in range(2000):
+   hidden = model.init_hidden()
 
-    print(i)
+   loss = 0
+
+   for i in tqdm(range(2000)):
 
     j = 4 #+ random.randint(0,5)
 
@@ -57,17 +59,17 @@ def main():
       loss = 0
   
 
-  plt.plot(losses)
-  plt.grid()
-  plt.show()  
+   plt.plot(losses)
+   plt.grid()
+   plt.show()  
 
-  print(miao[3])
-  print(model.forward(miao[0:3].float()))
+   print(miao[3])
+   print(model.forward(miao[0:3].float()))
 
 
 
 
 if __name__ == "__main__":
-    main()
+   main()
 
 
