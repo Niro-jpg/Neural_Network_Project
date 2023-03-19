@@ -19,7 +19,7 @@ def main():
    hidden_size = 256
    if "-h" in sys.argv:
       index = sys.argv.index("-h")
-      hidden_size = sys.argv[index + 1]
+      hidden_size = int(sys.argv[index + 1])
 
    #choosing the number of epochs
    epochs = 15000
@@ -92,8 +92,8 @@ def main():
    plt.grid()
    plt.show()  
 
-   print(miao[3])
-   print(model.forward(miao[0:3].float()))
+   print(miao[8])
+   print(model.forward(miao[0:8].float()))
 
 
 

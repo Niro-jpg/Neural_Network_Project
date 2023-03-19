@@ -183,7 +183,7 @@ class Net(nn.Module):
 
         self.hidden_size = hidden_size
 
-        self.SRNN = SRNN(input_size, output_size, hidden_size)
+        self.GRU = GRU(input_size, output_size, hidden_size)
 
         self.layerMLP = nn.Sequential(
           nn.Linear(self.hidden_size, 100),
@@ -200,7 +200,7 @@ class Net(nn.Module):
         
         if hidden == None: hidden = self.init_hidden()
 
-        _, hidden = self.SRNN.forward(input, hidden)
+        _, hidden = self.GRU.forward(input, hidden)
 
         output = self.layerMLP(hidden)
 
