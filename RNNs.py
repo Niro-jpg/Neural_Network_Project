@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 
 class SRNN(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size = 256, MLP_len = 3, MLP_size = 32):
+    def __init__(self, input_size, output_size, hidden_size = 256, MLP_len = 3):
         super(SRNN, self).__init__()
 
         # Defining some parameters
@@ -49,7 +49,7 @@ class SRNN(nn.Module):
 
           hidden = F.relu(pre_hidden + b)
 
-          output = self.h2o(hidden)
+        output = self.h2o(hidden)
 
         return output, hidden
     
@@ -79,6 +79,8 @@ class RNN(nn.Module):
 
           hidden = self.i2h(combined)
           output = self.h2o(hidden)
+
+        output = self.h2o(hidden)
 
         return output, hidden
     
@@ -117,7 +119,7 @@ class GRU(nn.Module):
 
             hidden = torch.mul(z, hidden) + torch.mul(1 - z, hidden_tilde)
 
-            output = self.h2o(hidden)
+        output = self.h2o(hidden)
 
         return output, hidden
     
@@ -161,7 +163,7 @@ class LSTM(nn.Module):
 
             hidden = torch.mul(o,torch.tanh(covariate))
 
-            output = self.c22o(torch.cat((hidden, covariate), 0))
+        output = self.c22o(torch.cat((hidden, covariate), 0))
 
         return output, hidden
     

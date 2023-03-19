@@ -2,12 +2,13 @@ from RNNs import *
 from Utils import *
 import matplotlib.pyplot as plt
 import sys
+import random
 from tqdm import tqdm
 
 def main():
 
    model = RNN(4,4,256)
-   arg = sys.argv[1]
+   arg = None
 
    if "-m" in sys.argv:
       index = sys.argv.index("-m")
@@ -43,7 +44,7 @@ def main():
 
    for i in tqdm(range(2000)):
 
-    j = 4 #+ random.randint(0,5)
+    j = 4 + random.randint(0,5)
 
     x, y = dataset.GetItems(j)
 
