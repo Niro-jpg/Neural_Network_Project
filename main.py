@@ -7,44 +7,72 @@ from tqdm import tqdm
 
 def main():
 
-   model = RNN(4,4,256)
-   arg = None
-
-   if "-m" in sys.argv:
-      index = sys.argv.index("-m")
-      arg = sys.argv[index + 1]
-
-      if arg == "srnn" or arg == "s" or arg == "SRNN":
-         model = SRNN(4,4,256)
-         print("srnn")
-
-      if arg == "gru" or arg == "g" or arg == "GRU":
-         model = GRU(4,4,256)   
-         print("gru")
-
-      if arg == "lstm" or arg == "l" or arg == "LSTM":
-         model = LSTM(4,4,256)   
-         print("lstm")   
-
+   #choosing the path of the dataset
    path = "../Archive/DailyDelhiClimateTrain.csv"  
    if "-p" in sys.argv:
       index = sys.argv.index("-p")
       path = sys.argv[index + 1]
 
-   dataset, miao = InitDataset(path)
+   size, dataset, miao = InitDataset(path)
+
+   #choosing the hidden size
+   hidden_size = 256
+   if "-h" in sys.argv:
+      index = sys.argv.index("-h")
+      hidden_size = sys.argv[index + 1]
+
+   #choosing the number of epochs
+   epochs = 15000
+   if "-e" in sys.argv:
+      index = sys.argv.index("-e")
+      epochs = int(sys.argv[index + 1])
+
+   model = RNN(size,size,hidden_size)
+   arg = None
+
+   #choosing the model
+   if "-m" in sys.argv:
+      index = sys.argv.index("-m")
+      arg = sys.argv[index + 1]
+
+      if arg == "srnn" or arg == "s" or arg == "SRNN":
+         model = SRNN(size,size,hidden_size)
+         print("srnn")
+
+      if arg == "gru" or arg == "g" or arg == "GRU":
+         model = GRU(size,size,hidden_size)   
+         print("gru")
+
+      if arg == "lstm" or arg == "l" or arg == "LSTM":
+         model = LSTM(size,size,hidden_size)   
+         print("lstm") 
+
+      if arg == "test" or arg == "t" or arg == "TEST":
+         model = Net(size,size,hidden_size)   
+         print("test")    
+
+   #choosing the learning rate
+   learning_rate = 0.00001
+   if "-l" in sys.argv:
+      index = sys.argv.index("-l")
+      learning_rate = float(sys.argv[index + 1])        
+
+
    losses = []
 
+   #loss function
    criterion = nn.MSELoss()
-   learning_rate = 0.00001
+   #optimier algorithm
    optimizer = torch.optim.SGD(model.parameters(), lr = learning_rate)
 
    hidden = model.init_hidden()
 
    loss = 0
 
-   for i in tqdm(range(2000)):
+   #training
+   for i in tqdm(range(epochs)):
 
-    j = 4 + random.randint(0,5)
+    j = size + random.randint(0,5)
 
     x, y = dataset.GetItems(j)
 
@@ -59,7 +87,7 @@ def main():
       optimizer.step()
       loss = 0
   
-
+   #plot the loss
    plt.plot(losses)
    plt.grid()
    plt.show()  

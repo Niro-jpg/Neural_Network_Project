@@ -48,5 +48,6 @@ def InitDataset(path):
 
     # converte le time series in un array numpy
     time_series_array = torch.from_numpy(time_series.to_numpy())
+    column_number = time_series_array.size()[1]
 
-    return SequentialDataset(time_series_array), time_series_array
+    return column_number,SequentialDataset(time_series_array), time_series_array

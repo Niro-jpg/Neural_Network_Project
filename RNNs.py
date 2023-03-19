@@ -3,6 +3,37 @@ from torch import nn
 import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 
+
+class RNN(nn.Module):
+    def __init__(self, input_size, output_size, hidden_size = 256):
+        super(RNN, self).__init__()
+
+        # Defining some parameters
+        self.hidden_size = hidden_size
+        self.i2h = nn.Linear(input_size + hidden_size, hidden_size)
+        self.h2o = nn.Linear(hidden_size, output_size)
+    
+    def forward(self, input, hidden = None):
+
+        if hidden == None: hidden = self.init_hidden()
+
+        for element in input:
+
+          combined = torch.cat((element, hidden), 0)
+
+          hidden = self.i2h(combined)
+          output = self.h2o(hidden)
+
+        output = self.h2o(hidden)
+
+        return output, hidden
+    
+    def init_hidden(self):
+
+        hidden = torch.zeros(self.hidden_size)
+        return hidden
+    
+
 class SRNN(nn.Module):
     def __init__(self, input_size, output_size, hidden_size = 256, MLP_len = 3):
         super(SRNN, self).__init__()
@@ -57,41 +88,10 @@ class SRNN(nn.Module):
 
         hidden = torch.zeros(self.hidden_size)
         return hidden
-
-
-
-class RNN(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size):
-        super(RNN, self).__init__()
-
-        # Defining some parameters
-        self.hidden_size = hidden_size
-        self.i2h = nn.Linear(input_size + hidden_size, hidden_size)
-        self.h2o = nn.Linear(hidden_size, output_size)
-    
-    def forward(self, input, hidden = None):
-
-        if hidden == None: hidden = self.init_hidden()
-
-        for element in input:
-
-          combined = torch.cat((element, hidden), 0)
-
-          hidden = self.i2h(combined)
-          output = self.h2o(hidden)
-
-        output = self.h2o(hidden)
-
-        return output, hidden
-    
-    def init_hidden(self):
-
-        hidden = torch.zeros(self.hidden_size)
-        return hidden
     
     
 class GRU(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size):
+    def __init__(self, input_size, output_size, hidden_size = 256):
         super(GRU, self).__init__()
 
         # Defining some parameters
@@ -130,7 +130,7 @@ class GRU(nn.Module):
     
 
 class LSTM(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size):
+    def __init__(self, input_size, output_size, hidden_size = 256):
         super(LSTM, self).__init__()
 
         # Defining some parameters
@@ -176,3 +176,38 @@ class LSTM(nn.Module):
 
         covariate = torch.zeros(self.hidden_size)
         return covariate
+    
+class Net(nn.Module):
+    def __init__(self, input_size, output_size, hidden_size = 256):
+        super(Net, self).__init__()
+
+        self.hidden_size = hidden_size
+
+        self.SRNN = SRNN(input_size, output_size, hidden_size)
+
+        self.layerMLP = nn.Sequential(
+          nn.Linear(self.hidden_size, 100),
+          nn.ReLU(),
+          nn.Linear(100, 100),
+          nn.ReLU(),
+          nn.Linear(100, 100),
+          nn.ReLU(),
+          nn.Linear(100, 50),
+          nn.Linear(50, output_size),
+        )    
+
+    def forward(self, input, hidden = None, covariate = None):
+        
+        if hidden == None: hidden = self.init_hidden()
+
+        _, hidden = self.SRNN.forward(input, hidden)
+
+        output = self.layerMLP(hidden)
+
+        return output, hidden
+
+    def init_hidden(self):
+
+        hidden = torch.zeros(self.hidden_size)
+        return hidden    
+        
