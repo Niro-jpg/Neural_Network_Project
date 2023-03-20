@@ -148,7 +148,7 @@ class LSTM(nn.Module):
         if covariate == None: covariate = self.init_covariate()
 
         for element in input:
-
+            
             combined = torch.cat((element, hidden), 0)
 
             i = torch.sigmoid(self.c2i(combined))

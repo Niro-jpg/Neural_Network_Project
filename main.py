@@ -7,11 +7,16 @@ from tqdm import tqdm
 
 def main():
 
+   plot = False
+
    #choosing the path of the dataset
    path = "../Archive/DailyDelhiClimateTrain.csv"  
-   if "-p" in sys.argv:
-      index = sys.argv.index("-p")
+   if "-d" in sys.argv:
+      index = sys.argv.index("-d")
       path = sys.argv[index + 1]
+
+   if "-p" in sys.argv:   
+      plot = True
 
    size, dataset, miao = InitDataset(path)
 
@@ -63,21 +68,16 @@ def main():
    #loss function
    criterion = nn.MSELoss()
    #optimier algorithm
-   optimizer = torch.optim.SGD(model.parameters(), lr = learning_rate)
-
+   optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
+   #initializing hidden layer
    hidden = model.init_hidden()
-
    loss = 0
 
-   #training
+   #training da implementare meglio
    for i in tqdm(range(epochs)):
-
     j = size + random.randint(0,5)
-
     x, y = dataset.GetItems(j)
-
     output, hidden = model.forward(x.float())
-
     loss += criterion(output, y.float())
 
     if (i % 35 == 0 and i != 0):
@@ -100,5 +100,4 @@ def main():
 
 if __name__ == "__main__":
    main()
-
 
