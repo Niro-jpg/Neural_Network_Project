@@ -1,6 +1,8 @@
 
 import torch
 import pandas as pd
+import random
+from torch.utils.data import Dataset, DataLoader
 
 class SequentialDataset:
   def __init__(self, dataset):
@@ -14,10 +16,10 @@ class SequentialDataset:
       self.index = 0
 
     if (i + self.index > self.max - 1):
-      x = self.dataset[self.index:self.max - 1]
-      y = self.dataset[self.max - 1]
+      #x = self.dataset[self.index:self.max - 1]
+      #y = self.dataset[self.max - 1]
       self.index = 0 
-      return x, y
+      #return x, y
     
     x = self.dataset[self.index:self.index + i - 1]
     y = self.dataset[self.index + i - 1]
@@ -51,3 +53,35 @@ def InitDataset(path):
     column_number = time_series_array.size()[1]
 
     return column_number,SequentialDataset(time_series_array), time_series_array
+
+class Data(Dataset):
+    def __init__(self, train_path, dataset_dim = 500, max_dim = 0):
+
+        size, data, miao = InitDataset(train_path)   
+
+        self.dataset = []
+        self.targets = []
+        self.dim = []
+
+        for i in range(dataset_dim):
+          #rand = random.randint(0,max_dim)
+          j = 15 #+ rand
+          x, t = data.GetItems(j)
+          #dim = x.size()[0]
+          #numbers_left = max_dim + 3 - dim - 1
+          #if dim != max_dim + 3 - 1:
+          #  zeros_to_add = torch.zeros(numbers_left,4, dtype=x.dtype)
+          #  x = torch.cat((x, zeros_to_add), 0)
+          #self.dim.append(numbers_left)
+          self.dataset.append(x)
+          self.targets.append(t)
+           
+
+    def __getitem__(self, index):
+        x = self.dataset[index]
+        #dim = self.dim[index]
+        #x = x[:-dim]
+        return x, self.targets[index]
+    
+    def __len__(self):
+        return len(self.dataset)

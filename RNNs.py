@@ -5,8 +5,10 @@ from torch.nn.parameter import Parameter
 
 
 class RNN(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size = 256):
+    def __init__(self, input_size, output_size, hidden_size = 256, batch_size = 32):
         super(RNN, self).__init__()
+
+        self.batch_size = batch_size
 
         # Defining some parameters
         self.hidden_size = hidden_size
@@ -15,27 +17,30 @@ class RNN(nn.Module):
     
     def forward(self, input, hidden = None):
 
-        if hidden == None: hidden = self.init_hidden()
+        input = input.permute(1,0,2)
+
+        if hidden == None: hidden = self.init_hidden(input.size()[1])
 
         for element in input:
-
-          combined = torch.cat((element, hidden), 0)
+          
+          combined = torch.cat((element, hidden), 1)
 
           hidden = self.i2h(combined)
-          output = self.h2o(hidden)
 
         output = self.h2o(hidden)
 
         return output, hidden
     
-    def init_hidden(self):
+    def init_hidden(self, batch_size = None):
 
-        hidden = torch.zeros(self.hidden_size)
+        if batch_size == None: batch_size = self.batch_size
+
+        hidden = torch.zeros(batch_size, self.hidden_size)
         return hidden
     
 
 class SRNN(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size = 256, MLP_len = 3):
+    def __init__(self, input_size, output_size, hidden_size = 256, MLP_len = 3, batch_size = 32):
         super(SRNN, self).__init__()
 
         # Defining some parameters
@@ -44,6 +49,8 @@ class SRNN(nn.Module):
         self.hidden_size = hidden_size
 
         self.h2o = nn.Linear(hidden_size, output_size, dtype = torch.float)
+
+        self.batch_size = batch_size
 
         self.layerMLP = nn.Sequential(
           nn.Linear(input_size, 100),
@@ -65,34 +72,36 @@ class SRNN(nn.Module):
         
     
     def forward(self, input, hidden = None):
+
+        input = input.permute(1,0,2)
         
-        if hidden == None: hidden = self.init_hidden()
+        if hidden == None: hidden = self.init_hidden(input.size()[1])
 
         for x in input:
 
           pre_hidden = torch.roll(hidden, 1, -1)
-
           linear_x = self.linearX(x)
-
           fx = self.layerMLP(x)
-
           b = torch.mul(fx,torch.sigmoid(linear_x))
-
           hidden = F.relu(pre_hidden + b)
 
         output = self.h2o(hidden)
 
         return output, hidden
     
-    def init_hidden(self):
+    def init_hidden(self, batch_size = None):
 
-        hidden = torch.zeros(self.hidden_size)
+        if batch_size == None: batch_size = self.batch_size
+
+        hidden = torch.zeros(batch_size, self.hidden_size)
         return hidden
     
     
 class GRU(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size = 256):
+    def __init__(self, input_size, output_size, hidden_size = 256, batch_size = 32):
         super(GRU, self).__init__()
+
+        self.batch_size = batch_size
 
         # Defining some parameters
         self.hidden_size = hidden_size
@@ -103,17 +112,19 @@ class GRU(nn.Module):
     
     def forward(self, input, hidden = None):
         
-        if hidden == None: hidden = self.init_hidden()
+        input = input.permute(1,0,2)
+        
+        if hidden == None: hidden = self.init_hidden(input.size()[1])
 
         for element in input:
 
-            combined = torch.cat((element, hidden), 0)
+            combined = torch.cat((element, hidden), 1)
 
             r = torch.sigmoid(self.c2r(combined))
 
             z = torch.sigmoid(self.c2z(combined))
 
-            combined_tilde = torch.cat((element, torch.mul(r,hidden)),0)
+            combined_tilde = torch.cat((element, torch.mul(r,hidden)),1)
 
             hidden_tilde = torch.tanh(self.c2t(combined_tilde))
 
@@ -123,15 +134,19 @@ class GRU(nn.Module):
 
         return output, hidden
     
-    def init_hidden(self):
+    def init_hidden(self, batch_size = None):
 
-        hidden = torch.zeros(self.hidden_size)
-        return hidden    
+        if batch_size == None: batch_size = self.batch_size
+
+        hidden = torch.zeros(batch_size, self.hidden_size)
+        return hidden
     
 
 class LSTM(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size = 256):
+    def __init__(self, input_size, output_size, hidden_size = 256, batch_size = 32):
         super(LSTM, self).__init__()
+
+        self.batch_size = batch_size
 
         # Defining some parameters
         self.hidden_size = hidden_size
@@ -143,13 +158,15 @@ class LSTM(nn.Module):
     
     def forward(self, input, hidden = None, covariate = None):
         
-        if hidden == None: hidden = self.init_hidden()
+        input = input.permute(1,0,2)
+        
+        if hidden == None: hidden = self.init_hidden(input.size()[1])
 
-        if covariate == None: covariate = self.init_covariate()
+        if covariate == None: covariate = self.init_covariate(input.size()[1])
 
         for element in input:
-            
-            combined = torch.cat((element, hidden), 0)
+
+            combined = torch.cat((element, hidden), 1)
 
             i = torch.sigmoid(self.c2i(combined))
 
@@ -163,51 +180,81 @@ class LSTM(nn.Module):
 
             hidden = torch.mul(o,torch.tanh(covariate))
 
-        output = self.c22o(torch.cat((hidden, covariate), 0))
+        output = self.c22o(torch.cat((hidden, covariate), 1))
 
         return output, hidden
     
-    def init_hidden(self):
+    def init_hidden(self, batch_size = None):
 
-        hidden = torch.zeros(self.hidden_size)
-        return hidden    
+        if batch_size == None: batch_size = self.batch_size
+
+        hidden = torch.zeros(batch_size, self.hidden_size)
+        return hidden 
     
-    def init_covariate(self):
+    def init_covariate(self, batch_size = None):
 
-        covariate = torch.zeros(self.hidden_size)
+        if batch_size == None: batch_size = self.batch_size
+
+        covariate = torch.zeros(batch_size, self.hidden_size)
         return covariate
-    
-class Net(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size = 256):
-        super(Net, self).__init__()
+
+        
+
+class Net2(nn.Module):
+    def __init__(self, input_size, output_size, hidden_size = 256, batch_size = 32):
+        super(Net2, self).__init__()
 
         self.hidden_size = hidden_size
 
-        self.GRU = GRU(input_size, output_size, hidden_size)
+        self.batch_size = batch_size
 
-        self.layerMLP = nn.Sequential(
-          nn.Linear(self.hidden_size, 100),
-          nn.ReLU(),
-          nn.Linear(100, 100),
-          nn.ReLU(),
-          nn.Linear(100, 100),
-          nn.ReLU(),
-          nn.Linear(100, 50),
-          nn.Linear(50, output_size),
-        )    
+        self.GRU = GRU(input_size,output_size, hidden_size)
+
+
+        self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, input, hidden = None, covariate = None):
-        
-        if hidden == None: hidden = self.init_hidden()
 
-        _, hidden = self.GRU.forward(input, hidden)
+        _, hidden = self.GRU.forward(input)
 
-        output = self.layerMLP(hidden)
+        output = self.fc(hidden)
 
         return output, hidden
 
-    def init_hidden(self):
+    def init_hidden(self, batch_size = None):
 
-        hidden = torch.zeros(self.hidden_size)
+        if batch_size == None: batch_size = self.batch_size
+
+        hidden = torch.zeros(batch_size,self.hidden_size)
         return hidden    
+
+class Net3(nn.Module):
+    def __init__(self, input_size, output_size, hidden_size = 256, batch_size = 32):
+        super(Net3, self).__init__()
+
+        self.hidden_size = hidden_size
+
+        self.batch_size = batch_size
+
+        self.GRU = nn.GRU(input_size, hidden_size,1)
         
+        self.fc = nn.Linear(hidden_size, output_size)
+
+    def forward(self, input, hidden = None, covariate = None):
+
+        input = input.permute(1,0,2)
+        
+        if hidden == None: hidden = self.init_hidden(input.size()[1])
+
+        _, hidden = self.GRU.forward(input)
+
+        output = self.fc(hidden)
+
+        return output, hidden
+
+    def init_hidden(self, batch_size = None):
+
+        if batch_size == None: batch_size = self.batch_size
+
+        hidden = torch.zeros(batch_size, self.hidden_size)
+        return hidden                  

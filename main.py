@@ -7,6 +7,11 @@ from tqdm import tqdm
 
 def main():
 
+   batch_size = 32
+   if "-b" in sys.argv:
+      index = sys.argv.index("-b")
+      batch_size = int(sys.argv[index + 1])
+
    plot = False
 
    #choosing the path of the dataset
@@ -32,29 +37,44 @@ def main():
       index = sys.argv.index("-e")
       epochs = int(sys.argv[index + 1])
 
-   model = RNN(size,size,hidden_size)
-   arg = None
+   models = []
+   models_name = []
 
    #choosing the model
    if "-m" in sys.argv:
       index = sys.argv.index("-m")
       arg = sys.argv[index + 1]
 
-      if arg == "srnn" or arg == "s" or arg == "SRNN":
-         model = SRNN(size,size,hidden_size)
+      if "r" in arg:
+         models.append(RNN(size,size,hidden_size, batch_size = batch_size))
+         models_name.append("RNN")
+         print("rnn")
+
+
+      if "s" in arg:
+         models.append(SRNN(size,size,hidden_size, batch_size = batch_size))
+         models_name.append("SRNN")
          print("srnn")
 
-      if arg == "gru" or arg == "g" or arg == "GRU":
-         model = GRU(size,size,hidden_size)   
+      if "g" in arg:
+         models.append(GRU(size,size,hidden_size, batch_size = batch_size))
+         models_name.append("GRU")
          print("gru")
 
-      if arg == "lstm" or arg == "l" or arg == "LSTM":
-         model = LSTM(size,size,hidden_size)   
+      if "l" in arg:
+         models.append(LSTM(size,size,hidden_size, batch_size = batch_size))
+         models_name.append("LSTM")
          print("lstm") 
 
-      if arg == "test" or arg == "t" or arg == "TEST":
-         model = Net(size,size,hidden_size)   
-         print("test")    
+      if "t" in arg:
+         models.append(Net2(size,size,hidden_size, batch_size = batch_size))   
+         models_name.append("TEST2")
+         print("test2")    
+         models.append(Net3(size,size,hidden_size, batch_size = batch_size))   
+         models_name.append("TEST3")
+         print("test3")    
+
+   if len(models) == 0: models.append(RNN(size,size,hidden_size, batch_size = batch_size))         
 
    #choosing the learning rate
    learning_rate = 0.00001
@@ -63,37 +83,54 @@ def main():
       learning_rate = float(sys.argv[index + 1])        
 
 
-   losses = []
+   train_dataset = Data("../Archive/DailyDelhiClimateTrain.csv")
+   train_dataloader = DataLoader(dataset=train_dataset, batch_size = batch_size, shuffle=True)
 
-   #loss function
-   criterion = nn.MSELoss()
-   #optimier algorithm
-   optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
-   #initializing hidden layer
-   hidden = model.init_hidden()
-   loss = 0
+   j = -1
 
-   #training da implementare meglio
-   for i in tqdm(range(epochs)):
-    j = size + random.randint(0,5)
-    x, y = dataset.GetItems(j)
-    output, hidden = model.forward(x.float())
-    loss += criterion(output, y.float())
+   total_losses = []
 
-    if (i % 35 == 0 and i != 0):
-      losses.append(loss.detach().numpy())
-      optimizer.zero_grad()
-      loss.backward()
-      optimizer.step()
-      loss = 0
+   for model in models:
+      losses = []
+      j+=0
+      #loss function
+      criterion = nn.MSELoss()
+      #optimier algorithm
+      optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
+      #initializing hidden layer
+      hidden = model.init_hidden()
+
+      for i in tqdm(range(epochs)):
+         for local_batch, local_labels in train_dataloader:
+            outputs, hiddens = model.forward(local_batch.float())
+            loss = criterion(outputs.float(),local_labels.float())
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            losses.append(loss.detach().numpy())
+
+      total_losses.append(losses)      
+
   
    #plot the loss
-   plt.plot(losses)
-   plt.grid()
-   plt.show()  
+   j = 0
+   if plot == True:
+      for x in total_losses:
+         plt.plot(x, label = models_name[j])
+         j += 1
 
-   print(miao[8])
-   print(model.forward(miao[0:8].float()))
+      plt.legend(loc="upper left")
+      plt.grid()
+      plt.show()
+
+
+   j = 0
+   for model in models:
+      print(models_name[j])
+      j += 1
+      print("actual value: ",miao[15])
+      output, _ = model.forward(miao[:15].unsqueeze(0).float())
+      print("predicted one: ", output)
 
 
 
