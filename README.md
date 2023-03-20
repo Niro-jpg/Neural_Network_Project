@@ -1,17 +1,18 @@
 # Neural_Network_Project
-Our neural network project
-## Tests
+## Introduction
+The aim of the project is to create an SRNN algorithm based on...
 
-### changed hidden vector size
+# Architecture
+* **Net:** We developed..
+* 
+# Data
+## Dataset
+Our Dataset
 
-### changed permutation matrix
-
-### changed learning rate
-
-### loss comparison
-
-### dataset comparison
-
-### change prediction window
-
-### 
+# Libraries
+* Pythorch
+* Scikit Learn
+* Pandas
+* Matplotlib
+* Numpy
+# Tests
