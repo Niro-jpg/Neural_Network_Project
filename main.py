@@ -23,7 +23,7 @@ def main():
    if "-p" in sys.argv:   
       plot = True
 
-   size, dataset, miao = InitDataset(path)
+   _,size, dataset, miao = InitDataset(path)
 
    #choosing the hidden size
    hidden_size = 256

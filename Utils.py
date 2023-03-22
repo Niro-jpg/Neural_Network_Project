@@ -51,22 +51,22 @@ def InitDataset(path):
     # converte le time series in un array numpy
     time_series_array = torch.from_numpy(time_series.to_numpy())
     column_number = time_series_array.size()[1]
+    row_number = time_series_array.size()[0]
 
-    return column_number,SequentialDataset(time_series_array), time_series_array
+    return row_number, column_number,SequentialDataset(time_series_array), time_series_array
 
 class Data(Dataset):
-    def __init__(self, train_path, dataset_dim = 500, max_dim = 0):
+    def __init__(self, train_path,time_series_length = 15, dataset_dim = 500, max_dim = 0):
 
-        size, data, miao = InitDataset(train_path)   
+        size ,features, data, miao = InitDataset(train_path)   
 
         self.dataset = []
         self.targets = []
-        self.dim = []
+        self.dataset_size = size/time_series_length
 
         for i in range(dataset_dim):
           #rand = random.randint(0,max_dim)
-          j = 15 #+ rand
-          x, t = data.GetItems(j)
+          x, t = data.GetItems(time_series_length)
           #dim = x.size()[0]
           #numbers_left = max_dim + 3 - dim - 1
           #if dim != max_dim + 3 - 1:
