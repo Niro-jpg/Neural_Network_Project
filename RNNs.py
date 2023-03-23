@@ -42,10 +42,12 @@ class RNN(nn.Module):
     
 
 class SRNN(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size = 256, MLP_len = 3, batch_size = 32):
+    def __init__(self, input_size, output_size, hidden_size = 256, MLP_len = 3, batch_size = 32, shift = 1):
         super(SRNN, self).__init__()
         
-        self.kwargs = {'input_size': input_size, 'output_size': output_size, 'hidden_size': hidden_size, 'batch_size': batch_size}
+        self.kwargs = {'input_size': input_size, 'output_size': output_size, 'hidden_size': hidden_size, 'batch_size': batch_size, 'shift': shift}
+        
+        self.shift = shift
 
         # Defining some parameters
         self.MLP_len = MLP_len
@@ -83,7 +85,7 @@ class SRNN(nn.Module):
 
         for x in input:
 
-          pre_hidden = torch.roll(hidden, 1, -1)
+          pre_hidden = torch.roll(hidden, self.shift, -1)
           linear_x = self.linearX(x)
           fx = self.layerMLP(x)
           b = torch.mul(fx,torch.sigmoid(linear_x))
@@ -218,15 +220,9 @@ class Net2(nn.Module):
 
         self.GRU = GRU(input_size,output_size, hidden_size)
 
-
-        self.fc = nn.Linear(hidden_size, output_size)
-
     def forward(self, input, hidden = None, covariate = None):
 
-        _, hidden = self.GRU.forward(input)
-
-        output = self.fc(hidden)
-
+        output, hidden = self.GRU.forward(input)
         return output, hidden
 
     def init_hidden(self, batch_size = None):

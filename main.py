@@ -27,7 +27,7 @@ def main():
    if "-p" in sys.argv:   
       plot = True
 
-   _,size, dataset, miao = InitDataset(path)
+   _, size, dataset, miao = InitDataset(path)
 
    #choosing the hidden size
    hidden_size = 256
@@ -87,7 +87,7 @@ def main():
       learning_rate = float(sys.argv[index + 1])        
 
 
-   train_dataset = Data("../Archive/DailyDelhiClimateTrain.csv")
+   train_dataset = Data(path)
    train_dataloader = DataLoader(dataset=train_dataset, batch_size = batch_size, shuffle=True)
 
    j = -1
