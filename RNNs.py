@@ -9,6 +9,8 @@ class RNN(nn.Module):
         super(RNN, self).__init__()
 
         self.batch_size = batch_size
+        
+        self.kwargs = {'input_size': input_size, 'output_size': output_size, 'hidden_size': hidden_size, 'batch_size': batch_size}
 
         # Defining some parameters
         self.hidden_size = hidden_size
@@ -42,6 +44,8 @@ class RNN(nn.Module):
 class SRNN(nn.Module):
     def __init__(self, input_size, output_size, hidden_size = 256, MLP_len = 3, batch_size = 32):
         super(SRNN, self).__init__()
+        
+        self.kwargs = {'input_size': input_size, 'output_size': output_size, 'hidden_size': hidden_size, 'batch_size': batch_size}
 
         # Defining some parameters
         self.MLP_len = MLP_len
@@ -100,6 +104,8 @@ class SRNN(nn.Module):
 class GRU(nn.Module):
     def __init__(self, input_size, output_size, hidden_size = 256, batch_size = 32):
         super(GRU, self).__init__()
+        
+        self.kwargs = {'input_size': input_size, 'output_size': output_size, 'hidden_size': hidden_size, 'batch_size': batch_size}
 
         self.batch_size = batch_size
 
@@ -145,6 +151,8 @@ class GRU(nn.Module):
 class LSTM(nn.Module):
     def __init__(self, input_size, output_size, hidden_size = 256, batch_size = 32):
         super(LSTM, self).__init__()
+        
+        self.kwargs = {'input_size': input_size, 'output_size': output_size, 'hidden_size': hidden_size, 'batch_size': batch_size}
 
         self.batch_size = batch_size
 

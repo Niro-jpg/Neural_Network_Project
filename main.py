@@ -12,6 +12,10 @@ def main():
       index = sys.argv.index("-b")
       batch_size = int(sys.argv[index + 1])
 
+   save = False
+   if "-s" in sys.argv:
+      save = True
+
    plot = False
 
    #choosing the path of the dataset
@@ -123,6 +127,13 @@ def main():
       plt.grid()
       plt.show()
 
+   #save the models
+   j = 0
+   if save == True:
+      for model in models:
+         Save(model, models_name[j])
+         j += 1
+
 
    j = 0
    for model in models:
@@ -131,8 +142,6 @@ def main():
       print("actual value: ",miao[15])
       output, _ = model.forward(miao[:15].unsqueeze(0).float())
       print("predicted one: ", output)
-
-
 
 
 if __name__ == "__main__":

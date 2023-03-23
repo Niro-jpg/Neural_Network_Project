@@ -62,6 +62,8 @@ class Data(Dataset):
 
         self.dataset = []
         self.targets = []
+        if time_series_length > size:
+           time_series_length = int(size/10)
         self.dataset_size = size/time_series_length
 
         for i in range(dataset_dim):
@@ -85,3 +87,12 @@ class Data(Dataset):
     
     def __len__(self):
         return len(self.dataset)
+    
+def Save(model, PATH):
+  torch.save([model.kwargs, model.state_dict()], PATH)
+
+def Load(MODEL, PATH):
+  kwargs, state = torch.load(PATH)
+  model = MODEL(**kwargs)
+  model.load_state_dict(state)
+  return model
