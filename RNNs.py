@@ -1,7 +1,6 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torch.nn.parameter import Parameter
 
 
 class RNN(nn.Module):
@@ -24,10 +23,8 @@ class RNN(nn.Module):
         if hidden == None: hidden = self.init_hidden(input.size()[1])
 
         for element in input:
-          
-          combined = torch.cat((element, hidden), 1)
-
-          hidden = self.i2h(combined)
+            combined = torch.cat((element, hidden), 1)
+            hidden = self.i2h(combined)
 
         output = self.h2o(hidden)
 
