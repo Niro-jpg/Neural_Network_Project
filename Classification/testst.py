@@ -1,28 +1,49 @@
 import torch
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import OneHotEncoder
 from VARIABLES import *
-import chardet
-import torchtext
+from torchtext.data.utils import get_tokenizer
+from torchtext.vocab import build_vocab_from_iterator
 
-#with open(ARCHIVE_PATH, 'rb') as rawdata:
-#    result = chardet.detect(rawdata.read(100000))
-#print(result)
+def create_words_tensor(number_of_features, number_of_elements, frasi, vocab):
+    X = torch.zeros(number_of_elements, number_of_features)
+    
+    for i, frase in enumerate(frasi):
+        words = tokenizer(frase)
+        iters = min(len(words),number_of_features)
+        for j in range(iters):
+            X[i][j] = vocab[words[j].lower()]   
+            
+    return X            
 
-#data = pd.read_csv(ARCHIVE_PATH)
+#nltk.download('punkt')
 
-#features = data.iloc[:,:1]
-#target = data.iloc[:,-1:]
+frase = "ciao sono io flavio"
+arrays = frase.split(" ")
 
-#features_tensor = torch.tensor(features.values)
+df = pd.read_csv( ARCHIVE_PATH, header = 0) 
 
-#label_encoder = LabelEncoder()
-#target_int = label_encoder.fit_transform(target)
-#target_tensor = torch.tensor(target_int)
+frasi = np.array(df['review'])
+target = np.array(df['sentiment'])
 
-#print(features)
-#print(target_tensor)
+tokenizer = get_tokenizer('basic_english')
 
-tokenizer = torchtext.data.utils.get_tokenizer('basic_english')
-text_field = torchtext.legacy.data.utils.Field(sequential=True, use_vocab=True, tokenize=tokenizer, lower=True, batch_first=True)
+def yield_tokens():
+    for example in frasi:
+        tokens = tokenizer(example)
+        yield tokens
+        
+token_generator = yield_tokens()  
+        
+vocab = build_vocab_from_iterator(token_generator)
+
+vocab.get_stoi()
+
+#X = create_words_tensor(60,len(frasi),frasi, vocab)
+
+encoder = LabelEncoder()
+y_encoded = encoder.fit_transform(target)
+print(type(y_encoded))
+
+print(torch.tensor(y_encoded))

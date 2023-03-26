@@ -4,6 +4,7 @@ from Utils import *
 import sys
 from RNNs import *
 from VARIABLES import *
+from tqdm import tqdm
 
 def Test():
     batch_size = 32
@@ -26,7 +27,7 @@ def Test():
     if "-p" in sys.argv:   
         plot = True
 
-    _, size, dataset, miao = InitDataset(path)
+    size ,features, X, t = InitDataset(path)   
 
     #choosing the hidden size
     hidden_size = 256
@@ -49,36 +50,36 @@ def Test():
         arg = sys.argv[index + 1]
 
         if "r" in arg:
-            models.append(RNN(size,size,hidden_size, batch_size = batch_size))
+            models.append(RNN(features,hidden_size, batch_size = batch_size))
             models_name.append("RNN")
             print("rnn")
 
 
         if "s" in arg:
-            models.append(SRNN(size,size,hidden_size, batch_size = batch_size))
+            models.append(SRNN(features,hidden_size, batch_size = batch_size))
             models_name.append("SRNN")
             print("srnn")
 
         if "g" in arg:
-            models.append(GRU(size,size,hidden_size, batch_size = batch_size))
+            models.append(GRU(features,hidden_size, batch_size = batch_size))
             models_name.append("GRU")
             print("gru")
 
         if "l" in arg:
-            models.append(LSTM(size,size,hidden_size, batch_size = batch_size))
+            models.append(LSTM(features,hidden_size, batch_size = batch_size))
             models_name.append("LSTM")
             print("lstm") 
 
         if "t" in arg:
-            models.append(Net2(size,size,hidden_size, batch_size = batch_size))   
+            models.append(Net2(features,hidden_size, batch_size = batch_size))   
             models_name.append("TEST2")
             print("test2")    
-            models.append(Net3(size,size,hidden_size, batch_size = batch_size))   
+            models.append(Net3(features,hidden_size, batch_size = batch_size))   
             models_name.append("TEST3")
             print("test3")    
 
     if len(models) == 0: 
-        models.append(RNN(size,size,hidden_size, batch_size = batch_size)) 
+        models.append(RNN(features,hidden_size, batch_size = batch_size)) 
         models_name.append("RNN")        
 
     #choosing the learning rate
@@ -99,7 +100,7 @@ def Test():
         losses = []
         j+=0
         #loss function
-        criterion = nn.MSELoss()
+        criterion = nn.BCELoss()
         #optimier algorithm
         optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
         #initializing hidden layer
@@ -108,10 +109,14 @@ def Test():
         for i in tqdm(range(epochs)):
             for local_batch, local_labels in train_dataloader:
                 outputs, hiddens = model.forward(local_batch.float())
-                loss = criterion(outputs.float(),local_labels.float())
+                loss = criterion(outputs.float(),torch.unsqueeze(local_labels.float(),1))
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+                A = X[:15]
+                miar = t[:15]
+                output, _ = model.forward(A.float())
+                print(accuracy(miar, output))
                 losses.append(loss.detach().numpy())
 
         total_losses.append(losses)      
@@ -135,13 +140,9 @@ def Test():
             Save(model, MODELS_PATH+models_name[j])
             j += 1
             
-    j = 0
-    for model in models:
-        print(models_name[j])
-        j += 1
-        print("actual value: ",miao[15])
-        output, _ = model.forward(miao[:15].unsqueeze(0).float())
-        print("predicted one: ", output)
-        
     
-            
+    A = X[:15]
+    miar = t[:15]
+    for models in models:
+        output, _ = model.forward(A.float())
+        print(accuracy(miar, output))

@@ -26,8 +26,8 @@ def test_with_parameters(plot_name,
     models_name.append("SRNN")
     models.append(LSTM(size,size,hidden_size, batch_size = batch_size))
     models_name.append("LSTM")
-    models.append(Net2(size,size,hidden_size, batch_size = batch_size))
-    #models.append(GRU(size,size,hidden_size, batch_size = batch_size))
+    #models.append(Net2(size,size,hidden_size, batch_size = batch_size))
+    models.append(GRU(size,size,hidden_size, batch_size = batch_size))
     models_name.append("GRU")
 
     total_losses = []

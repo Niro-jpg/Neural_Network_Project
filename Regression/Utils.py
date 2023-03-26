@@ -86,7 +86,7 @@ class Data(Dataset):
 def Save(model, PATH):
   torch.save([model.kwargs, model.state_dict()], PATH)
 
-def Load(MODEL, PATH):
+def Load_s(MODEL, PATH):
   kwargs, state = torch.load(PATH)
   model = MODEL(**kwargs)
   model.load_state_dict(state)

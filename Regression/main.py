@@ -1,17 +1,18 @@
 from Test import Test
 from Plots import Plot
 from Load import Load
+import sys
 
 def main():
    
-   if "-t":
+   if "-t" in sys.argv:
       Test()
    
-   elif "-i":
+   elif "-i" in sys.argv:
       Plot()
       
    
-   elif "-r":
+   elif "-r" in sys.argv:
       Load()
 
 

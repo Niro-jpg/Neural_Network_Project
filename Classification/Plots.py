@@ -2,6 +2,7 @@ from RNNs import *
 from Utils import *
 from tqdm import tqdm
 from VARIABLES import *
+from torch.utils.data import DataLoader
 
 
 
@@ -15,19 +16,19 @@ def test_with_parameters(plot_name,
                         path = ARCHIVE_PATH,
                         ):
                         
-    _, size, dataset, miao = InitDataset(path)
+    size ,features, X, t = InitDataset(path)   
 
-    train_dataset = Data(path, sequence_length = sequence_length)
+    train_dataset = Data(path)
     train_dataloader = DataLoader(dataset=train_dataset, batch_size = batch_size, shuffle=True)
 
     models = []
     models_name = []
-    models.append(SRNN(size,size,hidden_size, batch_size = batch_size))
+    models.append(SRNN(features,hidden_size, batch_size = batch_size))
     models_name.append("SRNN")
-    models.append(LSTM(size,size,hidden_size, batch_size = batch_size))
+    models.append(LSTM(features, hidden_size, batch_size = batch_size))
     models_name.append("LSTM")
-    models.append(Net2(size,size,hidden_size, batch_size = batch_size))
-    #models.append(GRU(size,size,hidden_size, batch_size = batch_size))
+    models.append(Net2(features,hidden_size, batch_size = batch_size))
+    #models.append(GRU(features, hidden_size, batch_size = batch_size))
     models_name.append("GRU")
 
     total_losses = []
@@ -39,7 +40,7 @@ def test_with_parameters(plot_name,
         mses = []
         j+=0
         #loss function
-        criterion = nn.MSELoss()
+        criterion = nn.BCELoss()
         #optimier algorithm
         optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
         #initializing hidden layer
@@ -48,7 +49,7 @@ def test_with_parameters(plot_name,
         for i in tqdm(range(epochs)):
             for local_batch, local_labels in train_dataloader:
                 outputs, hiddens = model.forward(local_batch.float())
-                loss = criterion(outputs.float(),local_labels.float())
+                loss = criterion(outputs.float(),torch.unsqueeze(local_labels.float(),1))
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
@@ -63,7 +64,7 @@ def test_with_parameters(plot_name,
 
     plt.title(plot_name + str(plot_value), fontsize=15)
     # Adding axis title
-    plt.ylabel('MSE', fontsize=12)
+    plt.ylabel('BCE', fontsize=12)
     plt.xlabel('Training steps', fontsize=12)
     plt.grid()    
     plt.legend()
@@ -77,9 +78,9 @@ def shift_variation_test():
     epochs = 1000
     learning_rate = 0.001
     sequence_length = 100
-    path = "../Archive/DailyDelhiClimateTrain.csv"
+    path = ARCHIVE_PATH
     
-    _, size, dataset, miao = InitDataset(path)
+    size ,features, X, t = InitDataset(path)   
 
     train_dataset = Data(path, sequence_length = sequence_length)
     train_dataloader = DataLoader(dataset=train_dataset, batch_size = batch_size, shuffle=True)
@@ -104,7 +105,7 @@ def shift_variation_test():
         mses = []
         j+=0
         #loss function
-        criterion = nn.MSELoss()
+        criterion = nn.BCELoss()
         #optimier algorithm
         optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
         #initializing hidden layer
@@ -113,7 +114,7 @@ def shift_variation_test():
         for i in tqdm(range(epochs)):
             for local_batch, local_labels in train_dataloader:
                 outputs, hiddens = model.forward(local_batch.float())
-                loss = criterion(outputs.float(),local_labels.float())
+                loss = criterion(outputs.float(),torch.unsqueeze(local_labels.float(),1))
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
@@ -128,7 +129,7 @@ def shift_variation_test():
 
     plt.title('shift variation', fontsize=15)
     # Adding axis title
-    plt.ylabel('MSE', fontsize=12)
+    plt.ylabel('BCE', fontsize=12)
     plt.xlabel('Training steps', fontsize=12)
     plt.grid()    
     plt.legend()
@@ -136,10 +137,7 @@ def shift_variation_test():
     plt.clf()
     
 def Plot():
-    sequences_length = [50,100,200,400,800]  
-    for sequence_length in sequences_length:
-        test_with_parameters("Sequence Length - ", sequence_length, sequence_length = sequence_length)
-    
+
     hidden_sizes = [64,128,256,512,1024]    
     for hidden_size in hidden_sizes:
         test_with_parameters("Hidden size - ", hidden_size, hidden_size = hidden_size)    

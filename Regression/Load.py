@@ -20,26 +20,26 @@ def Load():
         arg = sys.argv[index + 1]
 
         if "r" in arg:
-            model = Load(RNN, MODELS_PATH+"RNN")
+            model = Load_s(RNN, MODELS_PATH+"RNN")
             models.append(model)
             models_name.append("RNN")
             print("rnn")
 
 
         if "s" in arg:
-            model = Load(SRNN, MODELS_PATH+"SRNN")
+            model = Load_s(SRNN, MODELS_PATH+"SRNN")
             models.append(model)
             models_name.append("SRNN")
             print("srnn")
 
         if "g" in arg:
-            model = Load(GRU, MODELS_PATH+"GRU")
+            model = Load_s(GRU, MODELS_PATH+"GRU")
             models.append(model)
             models_name.append("GRU")
             print("gru")
 
         if "l" in arg:
-            model = Load(LSTM, MODELS_PATH+"LSTM")
+            model = Load_s(LSTM, MODELS_PATH+"LSTM")
             models.append(model)
             models_name.append("LSTM")
             print("lstm")

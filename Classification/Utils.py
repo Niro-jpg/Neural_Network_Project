@@ -1,80 +1,81 @@
 
 import torch
 import pandas as pd
-import random
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 import matplotlib.pyplot as plt
-from tqdm import tqdm
-import torch.nn.functional as F
-from torch.nn.parameter import Parameter
 from RNNs import *
+from sklearn.preprocessing import LabelEncoder
+import numpy as np
+from torchtext.data.utils import get_tokenizer
+from torchtext.vocab import build_vocab_from_iterator
+from VARIABLES import * 
+from sklearn.metrics import accuracy_score
+from Utils import *
 
-class SequentialDataset:
-  def __init__(self, dataset):
-    self.dataset = dataset
-    self.index = 0
-    self.max = dataset.size()[0]
+#nltk.download('punkt')
 
-  def GetItems(self, i):
+def accuracy(tensor_t, tensor_y):
+  tensor_y = (tensor_y >= 0.5)
+  return accuracy_score(tensor_t, tensor_y)
+  
 
-    if (self.index > self.max - 2):
-      self.index = 0
-
-    if (i + self.index > self.max - 1):
-      #x = self.dataset[self.index:self.max - 1]
-      #y = self.dataset[self.max - 1]
-      self.index = 0 
-      #return x, y
+def create_words_tensor( max_len, number_of_features, frasi, vocab, tokenizer, dataset_dim = 1000):
+    number_of_elements = min(dataset_dim, len(frasi)) 
+    X = torch.zeros(number_of_elements, max_len, number_of_features)
     
-    x = self.dataset[self.index:self.index + i - 1]
-    y = self.dataset[self.index + i - 1]
-    self.index += i
-    return x, y
+    for i in range(dataset_dim):
+        words = tokenizer(frasi[i])
+        iters = min(len(words),max_len)
+        for j in range(iters):
+            X[i][j] = vocab[words[j].lower()]   
+            
+    return X     
 
-def InitDataset(path):
+def InitDataset(path):       
 
-    df = pd.read_csv( path, header = 0) 
+  frase = "ciao sono io flavio"
+  arrays = frase.split(" ")
 
-    # converte la colonna temporale in tipo datetime
-    df['date'] = pd.to_datetime(df['date'])
+  df = pd.read_csv( ARCHIVE_PATH, header = 0) 
 
-    # ordina il dataframe in base alla colonna temporale
-    df = df.sort_values(by='date')
+  frasi = np.array(df['review'])
+  target = np.array(df['sentiment'])
 
-    # definisce la finestra temporale di 7 giorni
-    window_size = pd.Timedelta(days=7)
+  tokenizer = get_tokenizer('basic_english')
 
-    # crea le time series sovrapposte
-    time_series = df.set_index('date').rolling(window=window_size).mean()
+  def yield_tokens():
+    for example in frasi:
+        tokens = tokenizer(example)
+        yield tokens
+        
+  token_generator = yield_tokens()  
+        
+  vocab = build_vocab_from_iterator(token_generator)
 
-    # rimuove le righe che contengono dati mancanti
-    time_series = time_series.dropna()
+  vocab.get_stoi()
+  
+  max_len = 60
+  
+  dataset_dim = 1000
 
-    #normalization
-    #time_series = (time_series-time_series.mean())/time_series.std()
+  X = create_words_tensor(max_len,1,frasi, vocab, tokenizer, dataset_dim = dataset_dim)
 
-    # converte le time series in un array numpy
-    time_series_array = torch.from_numpy(time_series.to_numpy())
-    column_number = time_series_array.size()[1]
-    row_number = time_series_array.size()[0]
-
-    return row_number, column_number,SequentialDataset(time_series_array), time_series_array
+  encoder = LabelEncoder()
+  y_encoded = torch.tensor(encoder.fit_transform(target))
+  
+  return dataset_dim, 1, X, y_encoded
 
 class Data(Dataset):
-    def __init__(self, train_path,sequence_length = 100, max_dim = 0):
+    def __init__(self, train_path):
 
-        size ,features, data, miao = InitDataset(train_path)   
+        size ,features, X, t = InitDataset(train_path)   
 
         self.dataset = []
         self.targets = []
-        if sequence_length > size:
-            sequence_length = int(size/10)
-        self.dataset_size = int(size/sequence_length)
 
-        for i in range(self.dataset_size):
-          x, t = data.GetItems(sequence_length)
-          self.dataset.append(x)
-          self.targets.append(t)
+        for i in range(size):
+          self.dataset.append(X[i])
+          self.targets.append(t[i])
 
     def __getitem__(self, index):
         x = self.dataset[index]
@@ -86,7 +87,7 @@ class Data(Dataset):
 def Save(model, PATH):
   torch.save([model.kwargs, model.state_dict()], PATH)
 
-def Load(MODEL, PATH):
+def Load_s(MODEL, PATH):
   kwargs, state = torch.load(PATH)
   model = MODEL(**kwargs)
   model.load_state_dict(state)

@@ -4,17 +4,18 @@ import torch.nn.functional as F
 
 
 class RNN(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size = 256, batch_size = 32):
+    def __init__(self, input_size, hidden_size = 256, batch_size = 32):
         super(RNN, self).__init__()
 
         self.batch_size = batch_size
         
-        self.kwargs = {'input_size': input_size, 'output_size': output_size, 'hidden_size': hidden_size, 'batch_size': batch_size}
+        self.kwargs = {'input_size': input_size, 'hidden_size': hidden_size, 'batch_size': batch_size}
 
         # Defining some parameters
         self.hidden_size = hidden_size
         self.i2h = nn.Linear(input_size + hidden_size, hidden_size)
-        self.h2o = nn.Linear(hidden_size, output_size)
+        self.h2o = nn.Linear(hidden_size, 1)
+        self.sigmoid = nn.Sigmoid()
     
     def forward(self, input, hidden = None):
 
@@ -26,7 +27,7 @@ class RNN(nn.Module):
             combined = torch.cat((element, hidden), 1)
             hidden = self.i2h(combined)
 
-        output = self.h2o(hidden)
+        output = self.sigmoid(self.h2o(hidden))
 
         return output, hidden
     
@@ -39,10 +40,10 @@ class RNN(nn.Module):
     
 
 class SRNN(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size = 256, MLP_len = 3, batch_size = 32, shift = 1):
+    def __init__(self, input_size, hidden_size = 256, MLP_len = 3, batch_size = 32, shift = 1):
         super(SRNN, self).__init__()
         
-        self.kwargs = {'input_size': input_size, 'output_size': output_size, 'hidden_size': hidden_size, 'batch_size': batch_size, 'shift': shift}
+        self.kwargs = {'input_size': input_size, 'hidden_size': hidden_size, 'batch_size': batch_size, 'shift': shift}
         
         self.shift = shift
 
@@ -51,7 +52,8 @@ class SRNN(nn.Module):
 
         self.hidden_size = hidden_size
 
-        self.h2o = nn.Linear(hidden_size, output_size, dtype = torch.float)
+        self.h2o = nn.Linear(hidden_size, 1, dtype = torch.float)
+        self.sigmoid = nn.Sigmoid()
 
         self.batch_size = batch_size
 
@@ -88,7 +90,7 @@ class SRNN(nn.Module):
             b = torch.mul(fx,torch.sigmoid(linear_x))
             hidden = F.relu(pre_hidden + b)
 
-        output = self.h2o(hidden)
+        output = self.sigmoid(self.h2o(hidden))
 
         return output, hidden
     
@@ -101,10 +103,10 @@ class SRNN(nn.Module):
     
     
 class GRU(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size = 256, batch_size = 32):
+    def __init__(self, input_size, hidden_size = 256, batch_size = 32):
         super(GRU, self).__init__()
         
-        self.kwargs = {'input_size': input_size, 'output_size': output_size, 'hidden_size': hidden_size, 'batch_size': batch_size}
+        self.kwargs = {'input_size': input_size, 'hidden_size': hidden_size, 'batch_size': batch_size}
 
         self.batch_size = batch_size
 
@@ -113,7 +115,7 @@ class GRU(nn.Module):
         self.c2r = nn.Linear(input_size + hidden_size, hidden_size)
         self.c2z = nn.Linear(input_size + hidden_size, hidden_size)
         self.c2t = nn.Linear(input_size + hidden_size, hidden_size)
-        self.h2o = nn.Linear(hidden_size, output_size)
+        self.h2o = nn.Linear(hidden_size, 1)
     
     def forward(self, input, hidden = None):
         
@@ -135,7 +137,7 @@ class GRU(nn.Module):
 
             hidden = torch.mul(z, hidden) + torch.mul(1 - z, hidden_tilde)
 
-        output = self.h2o(hidden)
+        output = self.sigmoid(self.h2o(hidden))
 
         return output, hidden
     
@@ -148,10 +150,10 @@ class GRU(nn.Module):
     
 
 class LSTM(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size = 256, batch_size = 32):
+    def __init__(self, input_size, hidden_size = 256, batch_size = 32):
         super(LSTM, self).__init__()
         
-        self.kwargs = {'input_size': input_size, 'output_size': output_size, 'hidden_size': hidden_size, 'batch_size': batch_size}
+        self.kwargs = {'input_size': input_size, 'hidden_size': hidden_size, 'batch_size': batch_size}
 
         self.batch_size = batch_size
 
@@ -161,7 +163,8 @@ class LSTM(nn.Module):
         self.c2f = nn.Linear(input_size + hidden_size, hidden_size)
         self.c2ot = nn.Linear(input_size + hidden_size, hidden_size)
         self.c2ct = nn.Linear(input_size + hidden_size, hidden_size)
-        self.c22o = nn.Linear(hidden_size*2, output_size)
+        self.c22o = nn.Linear(hidden_size*2, 1)
+        self.sigmoid = nn.Sigmoid()
     
     def forward(self, input, hidden = None, covariate = None):
         
@@ -187,7 +190,7 @@ class LSTM(nn.Module):
 
             hidden = torch.mul(o,torch.tanh(covariate))
 
-        output = self.c22o(torch.cat((hidden, covariate), 1))
+        output = self.sigmoid(self.c22o(torch.cat((hidden, covariate), 1)))
 
         return output, hidden
     
@@ -208,19 +211,20 @@ class LSTM(nn.Module):
         
 
 class Net2(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size = 256, batch_size = 32):
+    def __init__(self, input_size,hidden_size = 256, batch_size = 32):
         super(Net2, self).__init__()
 
         self.hidden_size = hidden_size
 
         self.batch_size = batch_size
 
-        self.GRU = GRU(input_size,output_size, hidden_size)
+        self.GRU = GRU(input_size,1, hidden_size)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, input, hidden = None, covariate = None):
 
         output, hidden = self.GRU.forward(input)
-        return output, hidden
+        return self.sigmoid(output), hidden
 
     def init_hidden(self, batch_size = None):
 
@@ -240,6 +244,8 @@ class Net3(nn.Module):
         self.GRU = nn.GRU(input_size, hidden_size,1)
         
         self.fc = nn.Linear(hidden_size, output_size)
+        
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, input, hidden = None, covariate = None):
 
@@ -249,7 +255,7 @@ class Net3(nn.Module):
 
         _, hidden = self.GRU.forward(input)
 
-        output = self.fc(hidden)
+        output = self.sigmoid(self.fc(hidden))
 
         return output, hidden
 
