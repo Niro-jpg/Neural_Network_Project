@@ -1,20 +1,21 @@
 from Utils import *
 import sys
 from RNNs import *
-from VARIABLES import * 
+from VARIABLES import *
+
 
 def Load():
     models = []
     models_name = []
 
-    path = ARCHIVE_PATH 
+    path = ARCHIVE_PATH
     if "-d" in sys.argv:
         index = sys.argv.index("-d")
         path = sys.argv[index + 1]
 
-    size ,features, X, t = InitDataset(path)   
-    
-    #choosing the model
+    _, _, X, t = InitDataset(path)
+
+    # choosing the model
     if "-m" in sys.argv:
         index = sys.argv.index("-m")
         arg = sys.argv[index + 1]
@@ -24,7 +25,6 @@ def Load():
             models.append(model)
             models_name.append("RNN")
             print("rnn")
-
 
         if "s" in arg:
             model = Load_s(SRNN, MODELS_PATH+"SRNN")
@@ -43,8 +43,7 @@ def Load():
             models.append(model)
             models_name.append("LSTM")
             print("lstm")
-        
-        
+
     A = X[:15]
     miar = t[:15]
     for models in models:
