@@ -61,7 +61,7 @@ def test_with_parameters(plot_name,
     plt.xlabel('Training steps', fontsize=12)
     plt.grid()
     plt.legend()
-    plt.savefig(MODELS_PATH + plot_name + str(plot_value) +
+    plt.savefig(PLOTS_PATH + plot_name + str(plot_value) +
                 '.png', bbox_inches='tight')
     plt.clf()
 
@@ -138,8 +138,8 @@ def Plot():
     # for sequence_length in sequences_length:
     #    test_with_parameters("Sequence Length - ",
     #                         sequence_length, sequence_length=sequence_length)
-    hidden_sizes = [64, 128, 256, 512, 1024]
-    for hidden_size in hidden_sizes:
-        test_with_parameters("Hidden size - ", hidden_size,
-                             hidden_size=hidden_size)
+    #hidden_sizes = [64, 128, 256, 512]
+    # for hidden_size in hidden_sizes:
+    #    test_with_parameters("Hidden size - ", hidden_size,
+    #                         hidden_size=hidden_size)
     shift_variation_test()

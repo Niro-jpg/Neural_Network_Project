@@ -123,7 +123,7 @@ class GRU(nn.Module):
         hidden = torch.zeros(batch_size, self.hidden_size)
         return hidden
 
-# Our LSTM nn
+# Our LSTM model
 
 
 class LSTM(nn.Module):
@@ -190,7 +190,7 @@ class Net2(nn.Module):
         hidden = torch.zeros(batch_size, self.hidden_size)
         return hidden
 
-# anothcer test nn
+# another test model
 
 
 class Net3(nn.Module):
