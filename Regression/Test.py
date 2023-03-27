@@ -103,6 +103,7 @@ def Test():
         # optimier algorithm
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
+        # training process
         for i in tqdm(range(epochs)):
             for local_batch, local_labels in train_dataloader:
                 outputs, hiddens = model.forward(local_batch.float())
@@ -111,7 +112,7 @@ def Test():
                 loss.backward()
                 optimizer.step()
                 losses.append(loss.detach().numpy())
-
+        # add the loss to the list
         total_losses.append(losses)
 
     # plot the loss
@@ -120,22 +121,39 @@ def Test():
         for x in total_losses:
             plt.plot(x, label=models_name[j])
             j += 1
-
         plt.legend(loc="upper left")
         plt.grid()
         plt.show()
-
     # save the models
     j = 0
     if save == True:
         for model in models:
+
             Save(model, MODELS_PATH+models_name[j])
             j += 1
-
+    # test the model on a single value
+    a = []
+    at = []
+    b = []
+    bt = []
+    c = []
+    ct = []
+    d = []
+    dt = []
     j = 0
     for model in models:
         print(models_name[j])
         j += 1
-        print("actual value: ", miao[15])
-        output, _ = model.forward(miao[:15].unsqueeze(0).float())
+        print("actual value: ", miao[100])
+        output, _ = model.forward(miao[:100].unsqueeze(0).float())
         print("predicted one: ", output)
+        print(output[0][0])
+        print(miao[100][0])
+        print(miao.size()[0])
+        for i in tqdm(range(miao.size()[0] - 100)):
+            output, _ = model.forward(miao[i:100 + i].unsqueeze(0).float())
+            a.append(output[0][0].detach().numpy())
+            at.append(miao[i + 100][0].detach().numpy())
+        plt.plot(a, label="Prediction")
+        plt.plot(at, label="Real Value")
+        plt.show()

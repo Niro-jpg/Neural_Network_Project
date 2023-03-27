@@ -2,6 +2,8 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+# Our RNN implementation
+
 
 class RNN(nn.Module):
     def __init__(self, input_size, hidden_size=256, batch_size=32):
@@ -18,28 +20,25 @@ class RNN(nn.Module):
         self.h2o = nn.Linear(hidden_size, 1)
         self.sigmoid = nn.Sigmoid()
 
+    # forward function
     def forward(self, input, hidden=None):
-
         input = input.permute(1, 0, 2)
-
         if hidden == None:
             hidden = self.init_hidden(input.size()[1])
-
         for element in input:
             combined = torch.cat((element, hidden), 1)
             hidden = self.i2h(combined)
-
         output = self.sigmoid(self.h2o(hidden))
-
         return output, hidden
 
+    # the function to init the hidden
     def init_hidden(self, batch_size=None):
-
         if batch_size == None:
             batch_size = self.batch_size
-
         hidden = torch.zeros(batch_size, self.hidden_size)
         return hidden
+
+# Our SRNN implementation
 
 
 class SRNN(nn.Module):
@@ -70,6 +69,7 @@ class SRNN(nn.Module):
             hidden_size, hidden_size, bias=False, dtype=torch.float)
         self.linearX = nn.Linear(input_size, hidden_size, dtype=torch.float)
 
+    # forward function
     def forward(self, input, hidden=None):
         input = input.permute(1, 0, 2)
         if hidden == None:
@@ -83,11 +83,14 @@ class SRNN(nn.Module):
         output = self.sigmoid(self.h2o(hidden))
         return output, hidden
 
+    # function to init hidden state
     def init_hidden(self, batch_size=None):
         if batch_size == None:
             batch_size = self.batch_size
         hidden = torch.zeros(batch_size, self.hidden_size)
         return hidden
+
+# Our GRU implementation
 
 
 class GRU(nn.Module):
@@ -104,6 +107,7 @@ class GRU(nn.Module):
         self.h2o = nn.Linear(hidden_size, 1)
         self.sigmoid = nn.Sigmoid()
 
+    # the forward function
     def forward(self, input, hidden=None):
         input = input.permute(1, 0, 2)
         if hidden == None:
@@ -118,11 +122,14 @@ class GRU(nn.Module):
         output = self.sigmoid(self.h2o(hidden))
         return output, hidden
 
+    # the function to init the hidden state
     def init_hidden(self, batch_size=None):
         if batch_size == None:
             batch_size = self.batch_size
         hidden = torch.zeros(batch_size, self.hidden_size)
         return hidden
+
+# Our LSTM implementation
 
 
 class LSTM(nn.Module):
@@ -140,6 +147,7 @@ class LSTM(nn.Module):
         self.c22o = nn.Linear(hidden_size*2, 1)
         self.sigmoid = nn.Sigmoid()
 
+    # The forward function
     def forward(self, input, hidden=None, covariate=None):
         input = input.permute(1, 0, 2)
         if hidden == None:
@@ -157,6 +165,7 @@ class LSTM(nn.Module):
         output = self.sigmoid(self.c22o(torch.cat((hidden, covariate), 1)))
         return output, hidden
 
+    # the function to init the hidden state
     def init_hidden(self, batch_size=None):
         if batch_size == None:
             batch_size = self.batch_size
@@ -168,6 +177,8 @@ class LSTM(nn.Module):
             batch_size = self.batch_size
         covariate = torch.zeros(batch_size, self.hidden_size)
         return covariate
+
+# A neural network to test the pythorch GRU
 
 
 class Net2(nn.Module):
@@ -183,45 +194,35 @@ class Net2(nn.Module):
         return self.sigmoid(output), hidden
 
     def init_hidden(self, batch_size=None):
-
         if batch_size == None:
             batch_size = self.batch_size
-
         hidden = torch.zeros(batch_size, self.hidden_size)
         return hidden
+
+# Another test neural network
 
 
 class Net3(nn.Module):
     def __init__(self, input_size, output_size, hidden_size=256, batch_size=32):
         super(Net3, self).__init__()
-
         self.hidden_size = hidden_size
-
         self.batch_size = batch_size
-
         self.GRU = nn.GRU(input_size, hidden_size, 1)
-
         self.fc = nn.Linear(hidden_size, output_size)
-
         self.sigmoid = nn.Sigmoid()
 
+    # the forward function
     def forward(self, input, hidden=None, covariate=None):
-
         input = input.permute(1, 0, 2)
-
         if hidden == None:
             hidden = self.init_hidden(input.size()[1])
-
         _, hidden = self.GRU.forward(input)
-
         output = self.sigmoid(self.fc(hidden))
-
         return output, hidden
 
+    # the function to init the hidden state
     def init_hidden(self, batch_size=None):
-
         if batch_size == None:
             batch_size = self.batch_size
-
         hidden = torch.zeros(batch_size, self.hidden_size)
         return hidden

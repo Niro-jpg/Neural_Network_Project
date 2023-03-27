@@ -15,6 +15,7 @@ Our Dataset
 * Pandas
 * Matplotlib
 * Numpy
+* Torchtext
 # Usage
 
 Before to start install all the libraries listed before.
