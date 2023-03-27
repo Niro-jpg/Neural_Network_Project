@@ -44,4 +44,4 @@ If type `-t` you can use more arguments:
 * `-h` to select the hidden size
 
 # Results
-The results of our experiments are saved in the *Results*
+The results of our experiments are saved in the *Results* folder.

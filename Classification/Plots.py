@@ -140,9 +140,9 @@ def shift_variation_test(
 
 def Plot():
 
-    #hidden_sizes = [64, 128, 256, 512, 1024]
-    # for hidden_size in hidden_sizes:
-    #    test_with_parameters("Hidden size - ", hidden_size,
-    #                         hidden_size=hidden_size, epochs=100)
+    hidden_sizes = [64, 128, 256, 512, 1024]
+    for hidden_size in hidden_sizes:
+        test_with_parameters("Hidden size - ", hidden_size,
+                             hidden_size=hidden_size, epochs=100)
 
     shift_variation_test(epochs=10, hidden_size=512)
