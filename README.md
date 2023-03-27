@@ -1,13 +1,18 @@
 # Neural_Network_Project
 ## Introduction
-The aim of the project is to create an SRNN algorithm based on...
+This is our implementation of classical RNN networks,
+including Vanilla, GRU and LSTM models, versus the novel architecture proposed by
+Michael Rotman and Lior Wolf named Shuffling RNN.
 
-# Architecture
-* **Net:** We developed..
-* 
 # Data
-## Dataset
-Our Dataset
+## Classification Dataset
+Our dataset is the IMDB datasaet.
+IMDB dataset having 50K movie reviews for natural language processing or Text analytics.
+This dataset is provided with a set of 50,000 highly polar movie reviews.
+## Regression Dataset
+The dataset used in the study consists of a multivariate time series related to wheather
+conditions. Specifically, the time series consisted of four variables: humidity, pressure,
+temperature, and wind speed.
 
 # Libraries
 * Pythorch
@@ -37,3 +42,6 @@ If type `-t` you can use more arguments:
 * `-b` to select the batch size
 * `-d` to choose the directory of the dataset
 * `-h` to select the hidden size
+
+# Results
+The results of our experiments are saved in the *Results*
